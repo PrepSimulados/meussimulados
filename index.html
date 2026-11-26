@@ -138,7 +138,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-slate-400 mb-1">Cargos em Destaque (vírgula)</label>
-              <input id="trkHighlights" type="text" placeholder="Ex: TJCE, TRE, MPU"
+              <input id="trkHighlights" type="text" placeholder="Ex: TJ, TRE, MPU"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
             </div>
             <div>
@@ -195,21 +195,35 @@
       <div id="adminTabQuestions" class="hidden grid-cols-1 lg:grid-cols-2 gap-6">
         <form onsubmit="handleCreateQuestion(event)" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-3">
           <h3 class="font-bold text-white text-sm">Adicionar Questão Manual</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs text-slate-400 mb-1">Trilha</label>
+              <label class="block text-xs text-slate-400 mb-1">Trilha Principal</label>
               <select id="qTrack" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"></select>
             </div>
             <div>
+              <label class="block text-xs text-slate-400 mb-1">Outras Trilhas Compatíveis (opcional, vírgula)</label>
+              <input id="qExtraTracks" type="text" placeholder="Ex: POLICIA_JUDICIARIA, FISCAL_CONTROLE"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
               <label class="block text-xs text-slate-400 mb-1">Disciplina</label>
-              <input id="qDiscipline" type="text" required placeholder="Ex: DIREITO PENAL"
+              <input id="qDiscipline" type="text" required placeholder="Ex: DIREITO CONSTITUCIONAL"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
             </div>
             <div>
-              <label class="block text-xs text-slate-400 mb-1">Cargo / Concurso</label>
-              <input id="qRole" type="text" required placeholder="Ex: PCDF ou CFO PM"
+              <label class="block text-xs text-slate-400 mb-1">Assunto Dominante do Edital</label>
+              <input id="qTopic" type="text" placeholder="Ex: Direitos e Garantias Fundamentais & Sociais"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
             </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Cargo / Concurso</label>
+            <input id="qRole" type="text" required placeholder="Ex: PCDF ou CFO PM"
+              class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
           </div>
 
           <div>
@@ -233,7 +247,7 @@ ERRADO</textarea>
               </div>
               <div>
                 <label class="block text-xs text-slate-400 mb-1">Artigos / Lei</label>
-                <input id="qLaw" type="text" placeholder="Ex: Art. 5º, CF/88"
+                <input id="qLaw" type="text" placeholder="Ex: Art. 5º e 6º, CF/88"
                   class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
               </div>
             </div>
@@ -296,7 +310,7 @@ ERRADO</textarea>
             Escolha sua trilha de preparação
           </h1>
           <p class="text-sm text-slate-400 mt-1">
-            Teste gratuitamente com <strong class="text-slate-200">5 questões por trilha</strong> e acompanhe sua evolução no painel individual.
+            Teste gratuitamente com <strong class="text-slate-200">5 questões fixas de disciplinas variadas por trilha</strong> e acompanhe sua evolução no painel individual.
           </p>
         </div>
         <div id="tracksStatusText" class="text-xs text-slate-400">Carregando trilhas...</div>
@@ -307,7 +321,7 @@ ERRADO</textarea>
 
     <!-- VIEW 2: ÁREA DE SIMULADO -->
     <section id="quizView" class="hidden space-y-6">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
         <div class="flex items-center gap-3">
           <button onclick="goHome()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200">
             ← Trilhas
@@ -319,10 +333,28 @@ ERRADO</textarea>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <select id="filterDiscipline" onchange="applyQuestionFilters()"
+          <select id="filterDiscipline" onchange="handleDisciplineChange()"
             class="px-3 py-1.5 rounded-lg text-xs bg-slate-950 border border-slate-700 text-slate-200">
             <option value="ALL">Todas as Disciplinas</option>
           </select>
+
+          <select id="filterTopic" onchange="applyQuestionFilters()"
+            class="px-3 py-1.5 rounded-lg text-xs bg-slate-950 border border-slate-700 text-slate-200">
+            <option value="ALL">Todos os Assuntos</option>
+          </select>
+
+          <select id="filterQueueMode" onchange="applyQuestionFilters()"
+            class="px-3 py-1.5 rounded-lg text-xs bg-slate-950 border border-slate-700 text-slate-200">
+            <option value="CONTINUE">Continuar onde parei</option>
+            <option value="WRONG_FIRST">Retestar erros primeiro</option>
+            <option value="ALL_ORDERED">Ver todas na ordem</option>
+          </select>
+
+          <button type="button" onclick="shuffleCurrentQueue()"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            🔀 Embaralhar fila
+          </button>
+
           <span id="usageCounter" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-emerald-300 border border-slate-700"></span>
         </div>
       </div>
@@ -367,7 +399,7 @@ ERRADO</textarea>
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400">Taxa de Acerto</span>
           <div id="kpiAccuracy" class="text-2xl font-extrabold text-emerald-400 mt-1">0%</div>
-          <span class="text-[11px] text-slate-400">Meta recomendada: ≥ 80%</span>
+          <span id="kpiAccuracyHint" class="text-[11px] text-slate-400">Meta recomendada: ≥ 80%</span>
         </div>
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400">Tempo Estudado</span>
@@ -537,6 +569,215 @@ ERRADO</textarea>
     const ADMIN_SECRET = 'CBMSD=@2025';
     const FREE_QUESTION_LIMIT = 5;
 
+    const DOMINANT_TOPICS_BY_DISCIPLINE = {
+      'DIREITO CONSTITUCIONAL': [
+        {
+          label: 'Direitos e Garantias Fundamentais & Sociais',
+          keywords: ['direitos fundamentais', 'direitos sociais', 'dignidade', 'liberdade', 'igualdade', 'isonomia', 'habeas corpus', 'mandado de segurança', 'mandado de injunção', 'habeas data', 'ação popular', 'domicílio', 'sigilo', 'presunção de inocência', 'saúde', 'educação', 'moradia', 'trabalho', 'previdência', 'assistência social', 'família', 'criança', 'adolescente', 'idoso', 'nacionalidade', 'direitos políticos', 'voto', 'partidos políticos', 'inelegíveis', 'art. 5', 'art. 6', 'art. 7', 'art. 8', 'art. 9', 'art. 10', 'art. 11', 'art. 12', 'art. 13', 'art. 14', 'art. 15', 'art. 16', 'art. 17', 'art. 196', 'art. 205', 'art. 226', 'art. 227', 'remédios constitucionais']
+        },
+        {
+          label: 'Organização do Estado, Federação e Administração Pública',
+          keywords: ['federação', 'união', 'estados', 'distrito federal', 'municípios', 'competência', 'intervenção', 'administração pública', 'concurso público', 'estabilidade', 'acumulação de cargos', 'teto remuneratório', 'improbidade', 'segurança pública', 'polícias militares', 'corpos de bombeiros', 'guardas municipais', 'art. 18', 'art. 20', 'art. 21', 'art. 22', 'art. 23', 'art. 24', 'art. 25', 'art. 34', 'art. 37', 'art. 38', 'art. 41', 'art. 42', 'art. 144']
+        },
+        {
+          label: 'Organização dos Poderes, Processo Legislativo e Controle',
+          keywords: ['poder legislativo', 'congresso nacional', 'câmara', 'senado', 'processo legislativo', 'emenda constitucional', 'lei complementar', 'lei ordinária', 'medida provisória', 'poder executivo', 'presidente', 'governador', 'prefeito', 'poder judiciário', 'stf', 'stj', 'cnj', 'funções essenciais', 'ministério público', 'defensoria', 'advocacia pública', 'controle de constitucionalidade', 'adi', 'adc', 'adpf', 'art. 44', 'art. 59', 'art. 62', 'art. 76', 'art. 84', 'art. 92', 'art. 127', 'art. 131', 'art. 134']
+        }
+      ],
+      'DIREITO ADMINISTRATIVO': [
+        {
+          label: 'Regime Jurídico, Princípios, Organização e Agentes Públicos',
+          keywords: ['limpe', 'legalidade', 'impessoalidade', 'moralidade', 'publicidade', 'eficiência', 'centralização', 'descentralização', 'desconcentração', 'autarquia', 'fundação', 'empresa pública', 'sociedade de economia mista', 'agência reguladora', 'agência executiva', 'agentes públicos', 'servidor público', 'estágio probatório', 'pad', 'processo administrativo', 'lei 9.784', 'lei 8.112', '8.112']
+        },
+        {
+          label: 'Atos Administrativos, Poderes e Serviços Públicos',
+          keywords: ['ato administrativo', 'atributos', 'presunção de legitimidade', 'autoexecutoriedade', 'imperatividade', 'tipicidade', 'vinculado', 'discricionário', 'anulação', 'revogação', 'cassação', 'convalidação', 'poder vinculado', 'poder discricionário', 'poder hierárquico', 'poder disciplinar', 'poder de polícia', 'serviço público', 'concessão', 'permissão', 'autorização', 'parceria público-privada', 'ppp', '8.987']
+        },
+        {
+          label: 'Licitações, Contratos, Controle e Responsabilidade do Estado',
+          keywords: ['licitação', 'pregão', 'concorrência', 'leilão', 'diálogo competitivo', 'dispensa', 'inexigibilidade', 'contrato administrativo', 'lei 14.133', '14.133', 'responsabilidade civil', 'objetiva', 'teoria do risco administrativo', 'dano', 'nexo causal', 'direito de regresso', 'intervenção do estado na propriedade', 'desapropriação', 'tombamento', 'requisição', 'servidão', '37, § 6']
+        }
+      ],
+      'DIREITO PENAL': [
+        {
+          label: 'Teoria da Lei Penal, Crime, Ilícito e Culpabilidade',
+          keywords: ['lei penal', 'anterioridade', 'retroatividade', 'novatio legis', 'abolitio criminis', 'lugar do crime', 'tempo do crime', 'territorialidade', 'extraterritorialidade', 'fato típico', 'conduta', 'nexo causal', 'consumação', 'tentativa', 'desistência voluntária', 'arrependimento eficaz', 'crime impossível', 'antijuridicidade', 'ilicitude', 'legítima defesa', 'estado de necessidade', 'estrito cumprimento', 'exercício regular', 'culpabilidade', 'imputabilidade', 'erro de tipo', 'erro de proibição', 'coação', 'obediência hierárquica']
+        },
+        {
+          label: 'Concurso de Pessoas, Penas, Medidas e Extinção da Punibilidade',
+          keywords: ['concurso de pessoas', 'coautoria', 'partícipe', 'pena', 'reclusão', 'detenção', 'multa', 'dosimetria', 'trifásico', 'reincidência', 'regime inicial', 'fechado', 'semiaberto', 'aberto', 'substituição', 'sursis', 'livramento condicional', 'detração', 'remição', 'medida de segurança', 'extinção da punibilidade', 'prescrição', 'decadência', 'perempção', 'anistia', 'graça', 'indulto']
+        },
+        {
+          label: 'Crimes contra a Pessoa, Patrimônio, Fé Pública e Administração Pública',
+          keywords: ['homicídio', 'lesão corporal', 'ameaça', 'sequestro', 'cárcere privado', 'furto', 'roubo', 'extorsão', 'apropriação indébita', 'estelionato', 'receptação', 'dano', 'falsidade ideológica', 'falso testemunho', 'peculato', 'concussão', 'corrupção passiva', 'corrupção ativa', 'prevaricação', 'descaminho', 'contrabando', 'resistência', 'desobediência', 'desacato', 'violência doméstica', 'maria da penha']
+        }
+      ],
+      'DIREITO PROCESSUAL PENAL': [
+        {
+          label: 'Inquérito Policial, Ação Penal, Jurisdição e Competência',
+          keywords: ['inquérito policial', 'inquisitório', 'indiciamento', 'arquivamento', 'ação penal', 'pública incondicionada', 'condicionada', 'privada', 'queixa', 'denúncia', 'jurisdição', 'competência', 'justiça comum', 'justiça federal', 'justiça eleitoral', 'foro por prerrogativa', 'conexão', 'continência', 'cpp', 'lei 12.830']
+        },
+        {
+          label: 'Provas, Sujeitos Processuais, Prisões e Liberdade Provisória',
+          keywords: ['provas', 'exame de corpo de delito', 'interrogatório', 'testemunha', 'reconhecimento', 'acareação', 'busca e apreensão', 'interceptação telefônica', 'cadeia de custódia', 'assistente de acusação', 'prisão em flagrante', 'prisão preventiva', 'prisão temporária', 'medidas cautelares', 'fiança', 'liberdade provisória']
+        },
+        {
+          label: 'Procedimentos, Nulidades, Sentença, Recursos e Execução Penal',
+          keywords: ['procedimento comum', 'ordinário', 'sumário', 'sumaríssimo', 'júri', 'nulidades', 'sentença', 'recurso', 'apelação', 'recurso em sentido estrito', 'embargos', 'revisão criminal', 'habeas corpus', 'execução penal', 'lep']
+        }
+      ],
+      'DIREITO PENAL MILITAR': [
+        {
+          label: 'Aplicação da Lei Penal Militar, Crime Militar e Imputabilidade',
+          keywords: ['cpm', 'código penal militar', 'tempo de paz', 'tempo de guerra', 'território nacional', 'lugar do crime', 'militar da ativa', 'reserva', 'reformado', 'crime militar', 'tentativa', 'crime culposo', 'erro de direito', 'ilicitude', 'coação irresistível', 'obediência a ordem', 'imputabilidade', 'doença mental', 'concurso de agentes', 'art. 7', 'art. 9', 'art. 29', 'art. 49', 'art. 53', 'art. 54']
+        },
+        {
+          label: 'Penas, Medidas de Segurança, Extinção da Punibilidade e Crimes Militares',
+          keywords: ['pena', 'reclusão', 'detenção', 'impedimento', 'suspensão do exercício do posto', 'reforma', 'sursis', 'livramento condicional', 'posto', 'patente', 'graduação', 'punibilidade', 'prescrição', 'deserção', 'motim', 'revolta', 'violência contra superior', 'desrespeito', 'insubordinação', 'abandono de posto', 'peculato', 'concussão', 'falsidade', 'art. 55', 'art. 84', 'art. 89', 'art. 109', 'art. 123', 'art. 124']
+        }
+      ],
+      'DIREITO PROCESSUAL PENAL MILITAR': [
+        {
+          label: 'Justiça Militar, Polícia Judiciária Militar e IPM',
+          keywords: ['cppm', 'justiça militar', 'conselho de justiça', 'polícia judiciária militar', 'inquérito policial militar', 'ipm', 'encarregado', 'prazo', 'silêncio', 'arquivamento', 'reconstituição', 'contraditório', 'ampla defesa', 'lei processual']
+        },
+        {
+          label: 'Ação Penal Militar, Prisões, Provas e Processos Especiais',
+          keywords: ['denúncia', 'citação', 'intimação', 'prisão em flagrante', 'menagem', 'prisão preventiva', 'provas', 'deserção', 'insubmissão', 'recurso', 'correição parcial']
+        }
+      ],
+      'LEGISLAÇÃO PENAL ESPECIAL': [
+        {
+          label: 'Leis Penais Extravagantes, Crimes Hediondos, Drogas e Abuso',
+          keywords: ['crimes hediondos', '8.072', 'lei de drogas', '11.343', 'tráfico', 'porte', 'uso de drogas', 'abuso de autoridade', '13.869', 'organização criminosa', '12.850', 'lavagem de dinheiro', '9.613', 'estatuto do desarmamento', '10.826', 'arma de fogo', 'tortura', '9.455', 'interceptação', '9.296', 'juizados especiais', '9.099', 'execução penal', '7.210', 'feminicídio', 'racismo', 'estatuto da criança', 'eca', '8.069']
+        }
+      ],
+      'LEGISLAÇÃO MILITAR & SEGURANÇA PÚBLICA': [
+        {
+          label: 'Estatuto, Hierarquia, Disciplina, Carreira e Segurança Pública',
+          keywords: ['estatuto dos militares', 'hierarquia', 'disciplina', 'código de ética', 'regulamento disciplinar', 'promoção de oficiais', 'promoção de praças', 'conselho de justificação', 'conselho de disciplina', 'segurança contra incêndio', 'susp', '13.675', 'bombeiro militar', 'polícia militar']
+        }
+      ],
+      'CRIMINOLOGIA': [
+        {
+          label: 'Escolas Criminológicas, Vítima, Prevenção e Controle Social',
+          keywords: ['criminologia', 'escola clássica', 'escola positiva', 'lombroso', 'ferri', 'garofalo', 'labeling approach', 'etiquetamento', 'cifra negra', 'cifra dourada', 'vitimologia', 'vítima', 'prevenção primária', 'prevenção secundária', 'prevenção terciária', 'controle social formal', 'controle social informal', 'teoria das janelas quebradas']
+        }
+      ],
+      'MEDICINA LEGAL': [
+        {
+          label: 'Tanatologia, Traumatologia, Sexologia e Identificação Forense',
+          keywords: ['tanatologia', 'morte', 'rigor mortis', 'livor mortis', 'algor mortis', 'putrefação', 'cronotanatognose', 'traumatologia', 'contusão', 'ferida contusa', 'incisa', 'perfurante', 'perfurocontusa', 'asfixia', 'sexologia forense', 'estupro', 'infanticídio', 'identificação', 'datiloscopia', 'antropologia', 'imputabilidade', 'psiquiatria forense', 'toxicologia']
+        }
+      ],
+      'DIREITO TRIBUTÁRIO': [
+        {
+          label: 'Sistema Tributário, Competência, Princípios e Limitações',
+          keywords: ['sistema tributário', 'competência tributária', 'impostos', 'taxas', 'contribuição de melhoria', 'empréstimo compulsório', 'contribuições especiais', 'princípio da legalidade', 'anterioridade', 'noventena', 'irretroatividade', 'capacidade contributiva', 'imunidade tributária', 'isenção', 'ctn', 'art. 145', 'art. 150', 'art. 153', 'art. 155', 'art. 156']
+        },
+        {
+          label: 'Obrigação Tributária, Crédito, Administração e Processo Tributário',
+          keywords: ['obrigação tributária', 'fato gerador', 'sujeito ativo', 'sujeito passivo', 'responsabilidade tributária', 'crédito tributário', 'lançamento', 'suspensão', 'moratória', 'parcelamento', 'extinção', 'pagamento', 'compensação', 'decadência', 'prescrição', 'exclusão', 'anistia', 'dívida ativa', 'execução fiscal', '6.830']
+        }
+      ],
+      'CONTABILIDADE GERAL E AVANÇADA': [
+        {
+          label: 'Patrimônio, Escrituração, Demonstrações Contábeis e Pronunciamentos',
+          keywords: ['patrimônio', 'ativo', 'passivo', 'patrimônio líquido', 'lançamento', 'débito', 'crédito', 'balancete', 'balanço patrimonial', 'dre', 'dfc', 'dva', 'dlpa', 'dmpl', 'cpc', 'valor justo', 'ajuste a valor presente', 'teste de recuperabilidade', 'impairment', 'estoques', 'imobilizado', 'intangível', 'propriedade para investimento', 'provisões', 'contingências', 'receitas', 'cpc 47']
+        }
+      ],
+      'CONTABILIDADE PÚBLICA': [
+        {
+          label: 'MCASP, Plano de Contas, VPD, VPA e Demonstrações Públicas',
+          keywords: ['mcasp', 'contabilidade aplicada ao setor público', 'pcasp', 'variação patrimonial diminutiva', 'vpd', 'variação patrimonial aumentativa', 'vpa', 'balanço orçamentário', 'balanço financeiro', 'balanço patrimonial público', 'demonstração das variações patrimoniais', 'dvp', 'regimes contábeis', 'restos a pagar', 'dívida ativa']
+        }
+      ],
+      'ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA (AFO)': [
+        {
+          label: 'Ciclo Orçamentário, PPA, LDO, LOA, Receita e Despesa Pública',
+          keywords: ['afo', 'orçamento público', 'ppa', 'plano plurianual', 'ldo', 'lei de diretrizes orçamentárias', 'loa', 'lei orçamentária anual', 'princípios orçamentários', 'créditos adicionais', 'suplementares', 'especiais', 'extraordinários', 'receita pública', 'despesa pública', 'estágios da receita', 'estágios da despesa', 'empenho', 'liquidação', 'pagamento', 'lei de responsabilidade fiscal', 'lrf', 'lc 101', '4.320']
+        }
+      ],
+      'AUDITORIA': [
+        {
+          label: 'Auditoria Governamental e Independente, Riscos, Controles e Parecer',
+          keywords: ['auditoria', 'controle interno', 'controle externo', 'risco de auditoria', 'risco inerente', 'risco de controle', 'risco de detecção', 'amostragem', 'papéis de trabalho', 'evidência', 'relatório de auditoria', 'opinião', 'sem ressalva', 'com ressalva', 'adversa', 'abstenção de opinião', 'nbc ta', 'fraude']
+        }
+      ],
+      'DIREITO CIVIL': [
+        {
+          label: 'LINDB, Pessoas, Bens, Negócio Jurídico, Prescrição e Obrigações',
+          keywords: ['lindb', 'pessoa natural', 'personalidade', 'capacidade', 'pessoa jurídica', 'domicílio', 'bens', 'negócio jurídico', 'defeitos do negócio', 'erro', 'dolo', 'coação', 'fraude contra credores', 'simulação', 'invalidade', 'prescrição', 'decadência', 'obrigações', 'inadimplemento', 'mora', 'cláusula penal', 'perdas e danos']
+        },
+        {
+          label: 'Contratos, Responsabilidade Civil, Coisas, Família e Sucessões',
+          keywords: ['contratos', 'função social', 'boa-fé', 'compra e venda', 'locação', 'responsabilidade civil', 'direito das coisas', 'posse', 'propriedade', 'usucapião', 'condomínio', 'direito de família', 'casamento', 'união estável', 'regime de bens', 'alimentos', 'sucessões', 'inventário', 'testamento', 'legítima']
+        }
+      ],
+      'DIREITO PROCESSUAL CIVIL': [
+        {
+          label: 'Normas Fundamentais, Jurisdição, Competência, Partes e Atos Processuais',
+          keywords: ['cpc', 'normas fundamentais', 'jurisdição', 'competência', 'litisconsórcio', 'intervenção de terceiros', 'assistência', 'denunciação da lide', 'chamamento ao processo', 'juiz', 'ministério público', 'defensoria', 'atos processuais', 'prazos', 'comunicação dos atos', 'citação', 'intimação', 'tutela provisória', 'tutela de urgência', 'tutela de evidência']
+        },
+        {
+          label: 'Procedimento Comum, Provas, Sentença, Recursos e Execução',
+          keywords: ['petição inicial', 'indeferimento', 'improcedência liminar', 'audiência de conciliação', 'contestação', 'reconvenção', 'revelia', 'provas', 'ônus da prova', 'sentença', 'coisa julgada', 'cumprimento de sentença', 'execução', 'recursos', 'apelação', 'agravo de instrumento', 'embargos de declaração', 'recurso especial', 'recurso extraordinário']
+        }
+      ],
+      'DIREITO DO TRABALHO & PROCESSUAL DO TRABALHO': [
+        {
+          label: 'Contrato de Trabalho, Salário, Jornada, Rescisão e Processo Trabalhista',
+          keywords: ['clt', 'relação de emprego', 'empregador', 'empregado', 'contrato de trabalho', 'alteração contratual', 'salário', 'remuneração', 'equiparação salarial', 'jornada de trabalho', 'horas extras', 'banco de horas', 'férias', 'aviso prévio', 'rescisão', 'fgts', 'estabilidade', 'reclamação trabalhista', 'audiência trabalhista', 'recurso ordinário', 'tst']
+        }
+      ],
+      'DIREITO PREVIDENCIÁRIO': [
+        {
+          label: 'Regimes Previdenciários, Segurados, Dependentes, Custeio e Benefícios',
+          keywords: ['previdência social', 'rgps', 'rpps', 'segurado obrigatório', 'empregado', 'contribuinte individual', 'segurado especial', 'dependentes', 'carência', 'salário de benefício', 'aposentadoria', 'auxílio por incapacidade temporária', 'auxílio-doença', 'auxílio-acidente', 'pensão por morte', 'salário-maternidade', 'bpc', 'loas', 'custeio previdenciário', '8.212', '8.213']
+        }
+      ],
+      'LÍNGUA PORTUGUESA': [
+        {
+          label: 'Morfologia, Sintaxe, Concordância, Regência, Crase e Pontuação',
+          keywords: ['crase', 'acentuação', 'ortografia', 'morfologia', 'classe gramatical', 'verbo', 'pronome', 'conjunção', 'preposição', 'sintaxe', 'sujeito', 'predicado', 'oração', 'período', 'concordância verbal', 'concordância nominal', 'regência verbal', 'regência nominal', 'pontuação', 'vírgula', 'colocação pronominal', 'próclise', 'ênclise', 'mesóclise']
+        },
+        {
+          label: 'Interpretação, Tipologia Textual, Semântica e Redação Oficial',
+          keywords: ['compreensão', 'interpretação', 'ideia principal', 'inferência', 'coesão', 'coerência', 'tipologia', 'gênero textual', 'narrativo', 'descritivo', 'dissertativo', 'argumentativo', 'semântica', 'sinônimo', 'antônimo', 'polissemia', 'denotação', 'conotação', 'figuras de linguagem', 'redação oficial', 'ofício', 'memorando', 'relatório']
+        }
+      ],
+      'MATEMÁTICA & RACIOCÍNIO LÓGICO': [
+        {
+          label: 'Aritmética, Porcentagem, Razão, Proporção, Equações e Funções',
+          keywords: ['porcentagem', 'juros simples', 'juros compostos', 'razão', 'proporção', 'regra de três', 'equação', 'sistema de equações', 'inequação', 'função', '1º grau', '2º grau', 'exponencial', 'logaritmo', 'média', 'moda', 'mediana', 'estatística']
+        },
+        {
+          label: 'Geometria, Análise Combinatória, Probabilidade e Sequências',
+          keywords: ['geometria plana', 'geometria espacial', 'área', 'perímetro', 'volume', 'triângulo', 'pitágoras', 'circunferência', 'análise combinatória', 'princípio fundamental da contagem', 'arranjo', 'combinação', 'permutação', 'probabilidade', 'sequência', 'pa', 'pg', 'progressão aritmética', 'progressão geométrica', 'matriz', 'determinante']
+        },
+        {
+          label: 'Raciocínio Lógico, Proposições, Argumentação e Conjuntos',
+          keywords: ['raciocínio lógico', 'proposição', 'conectivo', 'tabela-verdade', 'tautologia', 'contradição', 'contingência', 'equivalência lógica', 'negação', 'de morgan', 'quantificadores', 'argumentação', 'silogismo', 'conjuntos', 'diagrama de venn']
+        }
+      ],
+      'INFORMÁTICA': [
+        {
+          label: 'Sistemas Operacionais, Office, Redes, Internet e Segurança da Informação',
+          keywords: ['windows', 'linux', 'word', 'excel', 'planilha', 'powerpoint', 'libreoffice', 'rede de computadores', 'lan', 'wan', 'ip', 'dns', 'http', 'https', 'navegador', 'correio eletrônico', 'computação em nuvem', 'segurança da informação', 'malware', 'vírus', 'ransomware', 'phishing', 'firewall', 'criptografia', 'assinatura digital', 'lgpd', 'backup']
+        }
+      ],
+      'HISTÓRIA E GEOGRAFIA ESTADUAIS & GERAIS': [
+        {
+          label: 'História, Política, Economia e Movimentos Sociais',
+          keywords: ['história', 'brasil colônia', 'império', 'república', 'era vargas', 'ditadura militar', 'redemocratização', 'constituição de 1988', 'abolição', 'movimentos sociais', 'coronelismo', 'economia', 'atualidades']
+        },
+        {
+          label: 'Geografia, Meio Ambiente, Urbanização, Clima, Relevo e Hidrografia',
+          keywords: ['geografia', 'clima', 'bioma', 'vegetação', 'relevo', 'hidrografia', 'bacia hidrográfica', 'urbanização', 'região metropolitana', 'demografia', 'população', 'meio ambiente', 'desenvolvimento sustentável', 'energia', 'cartografia', 'fusos horários']
+        }
+      ]
+    };
+
     const FALLBACK_TRACKS = [
       {
         id: 'POLICIAL_MILITAR_BM',
@@ -584,7 +825,9 @@ ERRADO</textarea>
       {
         id: 'demo_1',
         track: 'POLICIAL_MILITAR_BM',
+        tracks: ['POLICIAL_MILITAR_BM'],
         discipline: 'DIREITO PENAL MILITAR',
+        topic: 'Aplicação da Lei Penal Militar, Crime Militar e Imputabilidade',
         role: 'CFO PM / CFO Bombeiros',
         statement: 'No âmbito do Código Penal Militar (CPM), considera-se militar da ativa aquele que, mesmo estando de folga ou em férias, pratica crime militar em lugar sujeito à administração militar.',
         options: ['CERTO', 'ERRADO'],
@@ -596,7 +839,9 @@ ERRADO</textarea>
       {
         id: 'demo_2',
         track: 'POLICIA_JUDICIARIA',
+        tracks: ['POLICIA_JUDICIARIA'],
         discipline: 'DIREITO PROCESSUAL PENAL',
+        topic: 'Inquérito Policial, Ação Penal, Jurisdição e Competência',
         role: 'PCDF',
         statement: 'O inquérito policial é procedimento administrativo inquisitório, presidido pela autoridade policial, destinado à apuração de infrações penais e de sua autoria.',
         options: ['CERTO', 'ERRADO'],
@@ -608,7 +853,9 @@ ERRADO</textarea>
       {
         id: 'demo_3',
         track: 'FISCAL_CONTROLE',
+        tracks: ['FISCAL_CONTROLE'],
         discipline: 'DIREITO TRIBUTÁRIO',
+        topic: 'Obrigação Tributária, Crédito, Administração e Processo Tributário',
         role: 'SEFAZ / CGU / TCE',
         statement: 'A capacidade tributária ativa consiste na aptidão para figurar no polo ativo da obrigação tributária e pode ser delegada a outra pessoa jurídica de direito público.',
         options: ['CERTO', 'ERRADO'],
@@ -626,6 +873,7 @@ ERRADO</textarea>
       activeTrack: null,
       questions: [],
       filteredQuestions: [],
+      customShuffleOrder: null,
       studentSession: null,
       deviceId: getOrCreateDeviceId(),
       crmActivities: [],
@@ -808,7 +1056,7 @@ ERRADO</textarea>
       }
     }
 
-    // ==================== SIMULADO + PAYWALL DE 5 QUESTÕES ====================
+    // ==================== SIMULADO + MÚLTIPLAS TRILHAS + ASSUNTOS OCULTOS SE VAZIOS ====================
     function hasFullAccessToTrack(trackId) {
       if (state.isAdmin) return true;
       const s = state.studentSession;
@@ -816,19 +1064,169 @@ ERRADO</textarea>
       return s.track === 'PASSAPORTE_ELITE' || s.track === trackId;
     }
 
-    function getFreeUsedCount(trackId) {
-      return Number(localStorage.getItem(`ps_free_used_${trackId}`) || '0');
+    function questionMatchesTrack(q, trackId) {
+      if (!trackId || trackId === 'PASSAPORTE_ELITE') return true;
+      const primary = String((q && q.track) || '').trim().toUpperCase();
+      if (primary === 'ALL' || primary === String(trackId).toUpperCase()) return true;
+
+      if (Array.isArray(q && q.tracks)) {
+        const list = q.tracks.map(t => String(t || '').trim().toUpperCase());
+        if (list.includes('ALL') || list.includes(String(trackId).toUpperCase())) return true;
+      } else if (q && q.tracks) {
+        const list = String(q.tracks).split(',').map(t => t.trim().toUpperCase());
+        if (list.includes('ALL') || list.includes(String(trackId).toUpperCase())) return true;
+      }
+      return false;
     }
 
-    function incrementFreeUsedCount(trackId) {
-      const next = getFreeUsedCount(trackId) + 1;
-      localStorage.setItem(`ps_free_used_${trackId}`, String(next));
-      return next;
+    function normalizeDisciplineKey(disc) {
+      const raw = String(disc || 'GERAL').trim().toUpperCase();
+      if (raw.includes('CONSTITUCIONAL')) return 'DIREITO CONSTITUCIONAL';
+      if (raw.includes('PROCESSUAL PENAL MILITAR') || raw === 'DPPM') return 'DIREITO PROCESSUAL PENAL MILITAR';
+      if (raw.includes('PENAL MILITAR') || raw === 'DPM') return 'DIREITO PENAL MILITAR';
+      if (raw.includes('PROCESSUAL PENAL') || raw === 'DPP') return 'DIREITO PROCESSUAL PENAL';
+      if (raw.includes('PENAL') && !raw.includes('MILITAR')) return 'DIREITO PENAL';
+      if (raw.includes('ADMINISTRATIVO')) return 'DIREITO ADMINISTRATIVO';
+      if (raw.includes('TRIBUTÁRIO') || raw.includes('TRIBUTARIO')) return 'DIREITO TRIBUTÁRIO';
+      if (raw.includes('CONTABILIDADE PÚBLICA') || raw.includes('CONTABILIDADE PUBLICA')) return 'CONTABILIDADE PÚBLICA';
+      if (raw.includes('CONTABILIDADE')) return 'CONTABILIDADE GERAL E AVANÇADA';
+      if (raw.includes('AFO') || raw.includes('ORÇAMENTÁRIA') || raw.includes('ORCAMENTARIA')) return 'ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA (AFO)';
+      if (raw.includes('AUDITORIA')) return 'AUDITORIA';
+      if (raw.includes('PROCESSUAL CIVIL') || raw === 'CPC') return 'DIREITO PROCESSUAL CIVIL';
+      if (raw.includes('CIVIL') && !raw.includes('PROCESSUAL')) return 'DIREITO CIVIL';
+      if (raw.includes('TRABALHO')) return 'DIREITO DO TRABALHO & PROCESSUAL DO TRABALHO';
+      if (raw.includes('PREVIDENCIÁRIO') || raw.includes('PREVIDENCIARIO')) return 'DIREITO PREVIDENCIÁRIO';
+      if (raw.includes('PORTUGUÊS') || raw.includes('PORTUGUES')) return 'LÍNGUA PORTUGUESA';
+      if (raw.includes('MATEMÁTICA') || raw.includes('MATEMATICA') || raw.includes('RACIOCÍNIO') || raw.includes('RACIOCINIO')) return 'MATEMÁTICA & RACIOCÍNIO LÓGICO';
+      if (raw.includes('INFORMÁTICA') || raw.includes('INFORMATICA')) return 'INFORMÁTICA';
+      if (raw.includes('CRIMINOLOGIA')) return 'CRIMINOLOGIA';
+      if (raw.includes('MEDICINA LEGAL')) return 'MEDICINA LEGAL';
+      if (raw.includes('LEGISLAÇÃO PENAL') || raw.includes('LEGISLACAO PENAL') || raw.includes('EXTRAVAGANTE')) return 'LEGISLAÇÃO PENAL ESPECIAL';
+      if (raw.includes('MILITAR') || raw.includes('BOMBEIRO') || raw.includes('SEGURANÇA PÚBLICA') || raw.includes('SEGURANCA PUBLICA')) return 'LEGISLAÇÃO MILITAR & SEGURANÇA PÚBLICA';
+      if (raw.includes('HISTÓRIA') || raw.includes('HISTORIA') || raw.includes('GEOGRAFIA') || raw.includes('ATUALIDADES')) return 'HISTÓRIA E GEOGRAFIA ESTADUAIS & GERAIS';
+      return raw;
+    }
+
+    function getQuestionTopicLabel(q) {
+      if (q && q.topic && String(q.topic).trim()) {
+        return String(q.topic).trim();
+      }
+      const discKey = normalizeDisciplineKey(q && q.discipline);
+      const configuredTopics = DOMINANT_TOPICS_BY_DISCIPLINE[discKey] || [];
+      const searchableText = [
+        q && q.statement,
+        q && q.explanation,
+        q && q.lawArticles,
+        q && q.discipline
+      ].join(' ').toLowerCase();
+
+      for (const topicCfg of configuredTopics) {
+        if (topicCfg.keywords.some(kw => searchableText.includes(kw.toLowerCase()))) {
+          return topicCfg.label;
+        }
+      }
+      return '';
+    }
+
+    function matchesSelectedTopic(q, selectedTopic) {
+      if (!selectedTopic || selectedTopic === 'ALL') return true;
+
+      const directTopic = String((q && q.topic) || '').trim().toLowerCase();
+      const targetTopic = selectedTopic.trim().toLowerCase();
+      if (directTopic && (directTopic === targetTopic || directTopic.includes(targetTopic))) {
+        return true;
+      }
+
+      const discKey = normalizeDisciplineKey(q && q.discipline);
+      const allTopicLists = discKey && DOMINANT_TOPICS_BY_DISCIPLINE[discKey]
+        ? DOMINANT_TOPICS_BY_DISCIPLINE[discKey]
+        : Object.values(DOMINANT_TOPICS_BY_DISCIPLINE).flat();
+
+      const matchedCfg = allTopicLists.find(t => t.label.toLowerCase() === targetTopic);
+      const searchableText = [
+        q && q.statement,
+        q && q.explanation,
+        q && q.lawArticles,
+        q && q.discipline,
+        q && q.topic
+      ].join(' ').toLowerCase();
+
+      if (matchedCfg && Array.isArray(matchedCfg.keywords)) {
+        return matchedCfg.keywords.some(kw => searchableText.includes(kw.toLowerCase()));
+      }
+
+      const targetWords = targetTopic
+        .replace(/[&/,()-]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length >= 4);
+
+      return targetWords.some(w => searchableText.includes(w));
+    }
+
+    function getFixedFreeQuestions(list, limit = FREE_QUESTION_LIMIT) {
+      if (!Array.isArray(list) || list.length === 0) return [];
+
+      const selected = [];
+      const seenDisciplines = new Set();
+      const seenIds = new Set();
+
+      for (const q of list) {
+        const discKey = normalizeDisciplineKey(q.discipline);
+        const qIdentifier = String(q.id ?? q.statement ?? '');
+        if (!seenDisciplines.has(discKey)) {
+          seenDisciplines.add(discKey);
+          seenIds.add(qIdentifier);
+          selected.push(q);
+          if (selected.length === limit) return selected;
+        }
+      }
+
+      for (const q of list) {
+        const qIdentifier = String(q.id ?? q.statement ?? '');
+        if (!seenIds.has(qIdentifier)) {
+          seenIds.add(qIdentifier);
+          selected.push(q);
+          if (selected.length === limit) return selected;
+        }
+      }
+
+      return selected;
+    }
+
+    function getAnsweredMap(trackId) {
+      try {
+        return JSON.parse(localStorage.getItem(`ps_answered_map_${trackId}`) || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveAnsweredAttempt(trackId, qId, isRight) {
+      const map = getAnsweredMap(trackId);
+      const key = String(qId);
+      const prev = map[key] || { count: 0, lastCorrect: null, wrongCount: 0 };
+      prev.count += 1;
+      prev.lastCorrect = Boolean(isRight);
+      if (!isRight) prev.wrongCount += 1;
+      map[key] = prev;
+      localStorage.setItem(`ps_answered_map_${trackId}`, JSON.stringify(map));
+
+      const answeredList = Array.from(new Set([
+        ...(JSON.parse(localStorage.getItem(`ps_answered_${trackId}`) || '[]')).map(String),
+        key
+      ]));
+      localStorage.setItem(`ps_answered_${trackId}`, JSON.stringify(answeredList));
+    }
+
+    function getFreeAnsweredCount(trackId, fixedFreeList) {
+      const answeredMap = getAnsweredMap(trackId);
+      return fixedFreeList.filter((q, i) => Boolean(answeredMap[String(q.id ?? i)])).length;
     }
 
     async function startTrackQuiz(trackId) {
       const track = state.tracks.find(t => t.id === trackId) || { id: trackId, name: trackId };
       state.activeTrack = track;
+      state.customShuffleOrder = null;
 
       document.getElementById('tracksView').classList.add('hidden');
       document.getElementById('crmView').classList.add('hidden');
@@ -843,143 +1241,268 @@ ERRADO</textarea>
         if (Array.isArray(data) && data.length > 0) list = data;
       } catch (_) {}
 
+      const localForTrack = state.questions.filter(q => questionMatchesTrack(q, track.id));
+      if (localForTrack.length > 0) {
+        const seen = new Set(list.map(x => String(x.id ?? x.statement)));
+        localForTrack.forEach(item => {
+          const k = String(item.id ?? item.statement);
+          if (!seen.has(k)) {
+            seen.add(k);
+            list.push(item);
+          }
+        });
+      }
+
       if (list.length === 0) {
-        const localForTrack = state.questions.filter(q => !q.track || q.track === track.id);
-        list = localForTrack.length > 0 ? localForTrack : SAMPLE_QUESTIONS;
+        list = SAMPLE_QUESTIONS.filter(q => questionMatchesTrack(q, track.id));
+        if (list.length === 0) list = SAMPLE_QUESTIONS;
       }
 
       state.questions = list;
+      document.getElementById('filterDiscipline').value = 'ALL';
       populateDisciplineFilter(list);
+      populateTopicFilter(list, 'ALL');
       applyQuestionFilters();
     }
 
     function populateDisciplineFilter(list) {
       const sel = document.getElementById('filterDiscipline');
       const discs = Array.from(new Set(list.map(q => (q.discipline || 'GERAL').trim()).filter(Boolean)));
-      sel.innerHTML = `<option value="ALL">Todas as Disciplinas (${list.length})</option>` +
+      sel.innerHTML = `<option value="ALL">Todas as Disciplinas</option>` +
         discs.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    }
+
+    function populateTopicFilter(list, selectedDiscipline) {
+      const sel = document.getElementById('filterTopic');
+      const availableTopics = new Set();
+
+      const scopeList = (!selectedDiscipline || selectedDiscipline === 'ALL')
+        ? list
+        : list.filter(q => normalizeDisciplineKey(q.discipline) === normalizeDisciplineKey(selectedDiscipline));
+
+      // Inclui apenas assuntos que possuem pelo menos 1 questão anexada/correspondente neste escopo
+      scopeList.forEach(q => {
+        if (q && q.topic && String(q.topic).trim()) {
+          availableTopics.add(String(q.topic).trim());
+        } else {
+          const inferred = getQuestionTopicLabel(q);
+          if (inferred) availableTopics.add(inferred);
+        }
+      });
+
+      const normDisc = (!selectedDiscipline || selectedDiscipline === 'ALL')
+        ? ''
+        : normalizeDisciplineKey(selectedDiscipline);
+
+      const candidateCatalog = normDisc
+        ? (DOMINANT_TOPICS_BY_DISCIPLINE[normDisc] || []).map(x => x.label)
+        : Object.values(DOMINANT_TOPICS_BY_DISCIPLINE).flat().map(x => x.label);
+
+      candidateCatalog.forEach(label => {
+        const hasAnyQuestion = scopeList.some(q => matchesSelectedTopic(q, label));
+        if (hasAnyQuestion) {
+          availableTopics.add(label);
+        }
+      });
+
+      const options = Array.from(availableTopics);
+      sel.innerHTML = `<option value="ALL">Todos os Assuntos</option>` +
+        options.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+      sel.value = 'ALL';
+    }
+
+    function handleDisciplineChange() {
+      state.customShuffleOrder = null;
+      const disc = document.getElementById('filterDiscipline').value;
+      populateTopicFilter(state.questions, disc);
+      applyQuestionFilters();
     }
 
     function applyQuestionFilters() {
       const disc = document.getElementById('filterDiscipline').value;
-      state.filteredQuestions = disc === 'ALL'
-        ? state.questions
-        : state.questions.filter(q => (q.discipline || 'GERAL') === disc);
+      const topic = document.getElementById('filterTopic').value;
+      const mode = document.getElementById('filterQueueMode').value;
+      const trackId = state.activeTrack ? state.activeTrack.id : 'GERAL';
+      const unlocked = hasFullAccessToTrack(trackId);
+      const answeredMap = getAnsweredMap(trackId);
+
+      let baseList = state.questions.filter((q, originalIdx) => {
+        const qDisc = (q.discipline || 'GERAL').trim();
+        const matchesDisc = disc === 'ALL' || qDisc === disc;
+        if (!matchesDisc) return false;
+        if (topic !== 'ALL' && !matchesSelectedTopic(q, topic)) return false;
+        return true;
+      }).map((q, idx) => ({ q, idx }));
+
+      if (unlocked) {
+        if (mode === 'CONTINUE') {
+          const unanswered = baseList.filter(({ q, idx }) => !answeredMap[String(q.id ?? idx)]);
+          const answered = baseList.filter(({ q, idx }) => Boolean(answeredMap[String(q.id ?? idx)]));
+          baseList = [...unanswered, ...answered];
+        } else if (mode === 'WRONG_FIRST') {
+          const wrong = baseList.filter(({ q, idx }) => {
+            const st = answeredMap[String(q.id ?? idx)];
+            return st && st.lastCorrect === false;
+          });
+          const unanswered = baseList.filter(({ q, idx }) => !answeredMap[String(q.id ?? idx)]);
+          const right = baseList.filter(({ q, idx }) => {
+            const st = answeredMap[String(q.id ?? idx)];
+            return st && st.lastCorrect !== false;
+          });
+          baseList = [...wrong, ...unanswered, ...right];
+        }
+
+        if (Array.isArray(state.customShuffleOrder) && state.customShuffleOrder.length) {
+          const orderMap = new Map(state.customShuffleOrder.map((id, pos) => [String(id), pos]));
+          baseList.sort((a, b) => {
+            const pa = orderMap.has(String(a.q.id ?? a.idx)) ? orderMap.get(String(a.q.id ?? a.idx)) : 999999;
+            const pb = orderMap.has(String(b.q.id ?? b.idx)) ? orderMap.get(String(b.q.id ?? b.idx)) : 999999;
+            return pa - pb;
+          });
+        }
+      }
+
+      state.filteredQuestions = baseList.map(item => item.q);
       renderQuestions();
+    }
+
+    function shuffleCurrentQueue() {
+      const trackId = state.activeTrack ? state.activeTrack.id : 'GERAL';
+      if (!hasFullAccessToTrack(trackId)) {
+        showToast('A degustação gratuita mantém 5 questões fixas para evitar atualização infinita da página.');
+        return;
+      }
+      const ids = state.filteredQuestions.map((q, idx) => String(q.id ?? idx));
+      for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+      }
+      state.customShuffleOrder = ids;
+      applyQuestionFilters();
+      showToast('Fila embaralhada!');
+    }
+
+    function buildQuestionCardElement(q, displayIndex, trackId) {
+      const qKey = String(q.id ?? displayIndex);
+      const disc = String(q.discipline || 'GERAL');
+      const topicLabel = getQuestionTopicLabel(q);
+      const options = Array.isArray(q.options) && q.options.length ? q.options : ['CERTO', 'ERRADO'];
+      const optionsHtml = options.map((opt, oIdx) => `
+        <button onclick='answerQuestion(${JSON.stringify(trackId)}, ${JSON.stringify(qKey)}, ${JSON.stringify(disc)}, ${oIdx}, ${Number(q.correctAnswerIndex || 0)})'
+          id="opt_${escapeHtml(qKey)}_${oIdx}"
+          class="w-full text-left px-4 py-3 rounded-xl border border-slate-800 bg-slate-950/80 hover:border-slate-600 text-xs sm:text-sm text-slate-200 transition">
+          ${escapeHtml(String(opt))}
+        </button>
+      `).join('');
+
+      const card = document.createElement('div');
+      card.className = 'relative bg-slate-900/95 border border-slate-800 rounded-2xl p-6 overflow-hidden space-y-4';
+      card.innerHTML = `
+        <div class="watermark-layer">${Array(12).fill('<div class="watermark-item">PREPSIMULADOS</div>').join('')}</div>
+        <div class="relative z-10 space-y-4 protected-content">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-slate-800 text-emerald-300">${escapeHtml(disc)}</span>
+              ${topicLabel ? `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">${escapeHtml(topicLabel)}</span>` : ''}
+              <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-slate-800/70 text-slate-300">${escapeHtml(q.role || '')}</span>
+            </div>
+            <span class="text-xs font-bold text-slate-500">#${displayIndex + 1}</span>
+          </div>
+
+          <p class="text-sm sm:text-base text-white leading-relaxed font-medium">${escapeHtml(q.statement || '')}</p>
+
+          <div class="space-y-2">${optionsHtml}</div>
+
+          <div id="fb_${escapeHtml(qKey)}" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+            <div id="fbStatus_${escapeHtml(qKey)}" class="font-bold"></div>
+            ${q.lawArticles ? `<p class="text-amber-300 font-semibold">Fundamentação: ${escapeHtml(q.lawArticles)}</p>` : ''}
+            ${q.explanation ? `<p class="text-slate-300 leading-relaxed">${escapeHtml(q.explanation)}</p>` : ''}
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function buildSinglePaywallCard(trackId, trackName) {
+      const paywallCard = document.createElement('div');
+      paywallCard.id = 'singlePaywallBanner';
+      paywallCard.className = 'relative bg-slate-900/95 border border-amber-500/30 rounded-2xl p-6 overflow-hidden space-y-4';
+      paywallCard.innerHTML = `
+        <div class="watermark-layer">${Array(12).fill('<div class="watermark-item">PREPSIMULADOS</div>').join('')}</div>
+        <div class="relative z-10 py-6 text-center space-y-3">
+          <div class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+            Limite de ${FREE_QUESTION_LIMIT} questões gratuitas atingido
+          </div>
+          <h4 class="text-lg font-extrabold text-white">Continue resolvendo na trilha ${escapeHtml(trackName)}</h4>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">
+            Assine o plano semestral (6 meses) ou anual (12 meses) para desbloquear todas as questões, gabaritos comentados e seu painel de desempenho.
+          </p>
+          <div class="flex justify-center gap-3 pt-2 flex-wrap">
+            <button onclick='openPlansForTrack(${JSON.stringify(trackId)})'
+              class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950">
+              Ver Planos (6m / 12m)
+            </button>
+            <button onclick="openStudentModal()"
+              class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white">
+              Já sou Aluno
+            </button>
+          </div>
+        </div>
+      `;
+      return paywallCard;
     }
 
     function renderQuestions() {
       const container = document.getElementById('questionsContainer');
       const counterEl = document.getElementById('usageCounter');
       const trackId = state.activeTrack ? state.activeTrack.id : 'GERAL';
+      const trackName = state.activeTrack ? state.activeTrack.name : trackId;
       const unlocked = hasFullAccessToTrack(trackId);
-      const usedFree = getFreeUsedCount(trackId);
-
-      if (unlocked) {
-        counterEl.textContent = `Acesso Liberado • ${state.filteredQuestions.length} questões`;
-      } else {
-        counterEl.textContent = `Degustação: ${Math.min(usedFree, FREE_QUESTION_LIMIT)}/${FREE_QUESTION_LIMIT} grátis usadas`;
-      }
 
       container.innerHTML = '';
+
       if (!state.filteredQuestions.length) {
+        counterEl.textContent = unlocked ? 'Acesso Liberado' : 'Degustação Gratuita';
         container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center text-sm text-slate-400">Nenhuma questão encontrada para este filtro ainda.</div>`;
         return;
       }
 
-      state.filteredQuestions.forEach((q, idx) => {
-        const isLockedByFreemium = !unlocked && idx >= FREE_QUESTION_LIMIT;
-        const card = document.createElement('div');
-        card.className = 'relative bg-slate-900/95 border border-slate-800 rounded-2xl p-6 overflow-hidden space-y-4';
+      if (unlocked) {
+        counterEl.textContent = 'Acesso Liberado';
+        state.filteredQuestions.forEach((q, idx) => {
+          container.appendChild(buildQuestionCardElement(q, idx, trackId));
+        });
+        return;
+      }
 
-        if (isLockedByFreemium) {
-          card.innerHTML = `
-            <div class="watermark-layer">${Array(12).fill('<div class="watermark-item">PREPSIMULADOS</div>').join('')}</div>
-            <div class="relative z-10 py-6 text-center space-y-3">
-              <div class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                Limite de ${FREE_QUESTION_LIMIT} questões gratuitas atingido
-              </div>
-              <h4 class="text-lg font-extrabold text-white">Continue resolvendo na trilha ${escapeHtml(state.activeTrack.name)}</h4>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">
-                Assine o plano semestral (6 meses) ou anual (12 meses) para desbloquear todas as questões, gabaritos comentados e seu painel de desempenho.
-              </p>
-              <div class="flex justify-center gap-3 pt-2 flex-wrap">
-                <button onclick="openPlansForTrack('${escapeHtml(trackId)}')"
-                  class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950">
-                  Ver Planos (6m / 12m)
-                </button>
-                <button onclick="openStudentModal()"
-                  class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white">
-                  Já sou Aluno
-                </button>
-              </div>
-            </div>
-          `;
-          container.appendChild(card);
-          return;
-        }
+      const fixedFreeQuestions = getFixedFreeQuestions(state.filteredQuestions, FREE_QUESTION_LIMIT);
+      const answeredFreeCount = getFreeAnsweredCount(trackId, fixedFreeQuestions);
 
-        const qKey = String(q.id || idx);
-        const disc = String(q.discipline || 'GERAL');
-        const options = Array.isArray(q.options) && q.options.length ? q.options : ['CERTO', 'ERRADO'];
-        const optionsHtml = options.map((opt, oIdx) => `
-          <button onclick='answerQuestion(${JSON.stringify(trackId)}, ${JSON.stringify(qKey)}, ${JSON.stringify(disc)}, ${oIdx}, ${Number(q.correctAnswerIndex || 0)})'
-            id="opt_${qKey}_${oIdx}"
-            class="w-full text-left px-4 py-3 rounded-xl border border-slate-800 bg-slate-950/80 hover:border-slate-600 text-xs sm:text-sm text-slate-200 transition">
-            ${escapeHtml(String(opt))}
-          </button>
-        `).join('');
+      counterEl.textContent = `Degustação: ${answeredFreeCount}/${fixedFreeQuestions.length} respondidas`;
 
-        card.innerHTML = `
-          <div class="watermark-layer">${Array(12).fill('<div class="watermark-item">PREPSIMULADOS</div>').join('')}</div>
-          <div class="relative z-10 space-y-4 protected-content">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-slate-800 text-emerald-300">${escapeHtml(disc)}</span>
-                <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-slate-800/70 text-slate-300">${escapeHtml(q.role || '')}</span>
-              </div>
-              <span class="text-xs font-bold text-slate-500">#${idx + 1}</span>
-            </div>
-
-            <p class="text-sm sm:text-base text-white leading-relaxed font-medium">${escapeHtml(q.statement || '')}</p>
-
-            <div class="space-y-2">${optionsHtml}</div>
-
-            <div id="fb_${qKey}" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
-              <div id="fbStatus_${qKey}" class="font-bold"></div>
-              ${q.lawArticles ? `<p class="text-amber-300 font-semibold">Fundamentação: ${escapeHtml(q.lawArticles)}</p>` : ''}
-              ${q.explanation ? `<p class="text-slate-300 leading-relaxed">${escapeHtml(q.explanation)}</p>` : ''}
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
+      fixedFreeQuestions.forEach((q, idx) => {
+        container.appendChild(buildQuestionCardElement(q, idx, trackId));
       });
+
+      if (state.questions.length > fixedFreeQuestions.length) {
+        container.appendChild(buildSinglePaywallCard(trackId, trackName));
+      }
     }
 
     function answerQuestion(trackId, qId, discipline, chosenIdx, correctIdx) {
-      const unlocked = hasFullAccessToTrack(trackId);
+      const isRight = Number(chosenIdx) === Number(correctIdx);
       const answeredSet = JSON.parse(localStorage.getItem(`ps_answered_${trackId}`) || '[]');
       const isFirstAttempt = !answeredSet.includes(String(qId));
 
+      saveAnsweredAttempt(trackId, qId, isRight);
+
       if (isFirstAttempt) {
-        answeredSet.push(String(qId));
-        localStorage.setItem(`ps_answered_${trackId}`, JSON.stringify(answeredSet));
-
-        if (!unlocked) {
-          const used = incrementFreeUsedCount(trackId);
-          if (used >= FREE_QUESTION_LIMIT) {
-            showToast('Você usou suas 5 questões grátis nesta trilha!');
-            setTimeout(() => openPlansForTrack(trackId), 650);
-          }
-        }
-
-        // Registra no CRM de Desempenho Individual do Aluno
         recordCrmActivity({
           id: 'act_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           track: trackId,
           discipline: discipline || 'GERAL',
           type: 'question',
-          isCorrect: Number(chosenIdx) === Number(correctIdx) ? 1 : 0,
+          isCorrect: isRight ? 1 : 0,
           minutes: 0,
           date: new Date().toISOString().slice(0, 10),
           timestamp: Date.now()
@@ -988,7 +1511,6 @@ ERRADO</textarea>
 
       const fb = document.getElementById(`fb_${qId}`);
       const fbStatus = document.getElementById(`fbStatus_${qId}`);
-      const isRight = Number(chosenIdx) === Number(correctIdx);
 
       fb.classList.remove('hidden');
       fbStatus.textContent = isRight ? '✅ Resposta correta!' : '❌ Resposta incorreta — confira o comentário abaixo.';
@@ -1156,7 +1678,6 @@ ERRADO</textarea>
       document.getElementById('kpiStudyTime').textContent = `${hours}h ${String(mins).padStart(2, '0')}m`;
       document.getElementById('kpiSessionsCount').textContent = `${studies.length} sessões registradas`;
 
-      // Agrupar por disciplina
       const byDisc = {};
       list.forEach(item => {
         const d = (item.discipline || 'GERAL').toUpperCase();
@@ -1391,13 +1912,19 @@ ERRADO</textarea>
     async function handleCreateQuestion(e) {
       e.preventDefault();
       const track = document.getElementById('qTrack').value;
+      const extraTracks = document.getElementById('qExtraTracks').value
+        .split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+      const tracksList = Array.from(new Set([String(track).toUpperCase(), ...extraTracks]));
+
       const options = document.getElementById('qOptions').value
         .split('\n').map(s => s.trim()).filter(Boolean);
 
       const q = {
         id: 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         track,
+        tracks: tracksList,
         discipline: document.getElementById('qDiscipline').value.trim().toUpperCase(),
+        topic: document.getElementById('qTopic').value.trim(),
         role: document.getElementById('qRole').value.trim(),
         statement: document.getElementById('qStatement').value.trim(),
         options: options.length ? options : ['CERTO', 'ERRADO'],
@@ -1408,7 +1935,7 @@ ERRADO</textarea>
         createdAt: new Date().toISOString()
       };
 
-      state.questions.unshift(q);
+      state.questions.push(q);
       localStorage.setItem('ps_local_questions', JSON.stringify(state.questions));
 
       try {
@@ -1422,6 +1949,8 @@ ERRADO</textarea>
         showToast('Salva localmente; use "Sincronizar" para enviar à planilha.', true);
       }
 
+      document.getElementById('qExtraTracks').value = '';
+      document.getElementById('qTopic').value = '';
       document.getElementById('qStatement').value = '';
       document.getElementById('qExplanation').value = '';
     }
@@ -1433,20 +1962,29 @@ ERRADO</textarea>
         const parsed = JSON.parse(raw);
         const arr = Array.isArray(parsed) ? parsed : [parsed];
         const track = document.getElementById('qTrack').value;
-        const normalized = arr.filter(x => x && x.statement).map(x => ({
-          id: x.id || ('imp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
-          track: x.track || track,
-          discipline: String(x.discipline || 'GERAL').toUpperCase(),
-          role: String(x.role || track),
-          statement: String(x.statement),
-          options: Array.isArray(x.options) ? x.options : ['CERTO', 'ERRADO'],
-          correctAnswerIndex: Number(x.correctAnswerIndex || 0),
-          explanation: String(x.explanation || ''),
-          lawArticles: String(x.lawArticles || ''),
-          source: String(x.source || 'JSON Import'),
-          createdAt: x.createdAt || new Date().toISOString()
-        }));
-        state.questions.unshift(...normalized);
+        const normalized = arr.filter(x => x && x.statement).map(x => {
+          const mainTrack = x.track || track;
+          const rawTracks = Array.isArray(x.tracks)
+            ? x.tracks
+            : (x.tracks ? String(x.tracks).split(',') : [mainTrack]);
+          const cleanTracks = Array.from(new Set(rawTracks.map(t => String(t || '').trim().toUpperCase()).filter(Boolean)));
+          return {
+            id: x.id || ('imp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
+            track: mainTrack,
+            tracks: cleanTracks.length ? cleanTracks : [String(mainTrack).toUpperCase()],
+            discipline: String(x.discipline || 'GERAL').toUpperCase(),
+            topic: String(x.topic || x.subject || ''),
+            role: String(x.role || mainTrack),
+            statement: String(x.statement),
+            options: Array.isArray(x.options) ? x.options : ['CERTO', 'ERRADO'],
+            correctAnswerIndex: Number(x.correctAnswerIndex || 0),
+            explanation: String(x.explanation || ''),
+            lawArticles: String(x.lawArticles || ''),
+            source: String(x.source || 'JSON Import'),
+            createdAt: x.createdAt || new Date().toISOString()
+          };
+        });
+        state.questions.push(...normalized);
         localStorage.setItem('ps_local_questions', JSON.stringify(state.questions));
         showToast(`${normalized.length} questão(ões) importada(s)! Clique em Sincronizar para enviar à planilha.`);
       } catch (_) {
