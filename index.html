@@ -281,8 +281,8 @@ ERRADO</textarea>
 
       <!-- ADMIN TAB 3: RESET DE DISPOSITIVO -->
       <div id="adminTabStudents" class="hidden max-w-xl bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <h3 class="font-bold text-white text-sm">Resetar Dispositivo Vinculado (Anti-Rateio)</h3>
-        <p class="text-xs text-slate-400">Informe o e-mail ou CPF do aluno para liberar um novo aparelho.</p>
+        <h3 class="font-bold text-white text-sm">Resetar Dispositivos Vinculados (Anti-Rateio)</h3>
+        <p class="text-xs text-slate-400">Informe o e-mail ou CPF do aluno para limpar os aparelhos vinculados (limite padrão de até 3 dispositivos por aluno).</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input id="resetEmail" type="email" placeholder="E-mail do aluno"
             class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
@@ -290,7 +290,7 @@ ERRADO</textarea>
             class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white" />
         </div>
         <button onclick="handleResetDevice()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950">
-          Liberar Novo Dispositivo
+          Liberar Dispositivos
         </button>
       </div>
     </div>
@@ -486,11 +486,11 @@ ERRADO</textarea>
       <button onclick="closeModal('plansModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
       <div>
         <span class="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300">
-          Acesso Liberado • Anti-Rateio por Dispositivo
+          Acesso Liberado • Até 3 Dispositivos por Aluno
         </span>
         <h3 id="planModalTitle" class="text-xl font-extrabold text-white mt-2">Escolha seu plano de acesso</h3>
         <p id="planModalDesc" class="text-xs text-slate-400 mt-1">
-          Após a confirmação do pagamento na Yampi, seu acesso é liberado automaticamente por e-mail ou CPF.
+          Após a confirmação do pagamento na Yampi, seu acesso é liberado automaticamente mediante validação de e-mail e CPF.
         </p>
       </div>
 
@@ -529,26 +529,27 @@ ERRADO</textarea>
     </div>
   </div>
 
-  <!-- MODAL: ATIVAÇÃO DO ALUNO -->
+  <!-- MODAL: ATIVAÇÃO DO ALUNO (E-MAIL + CPF OBRIGATÓRIOS) -->
   <div id="studentModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 relative">
       <button onclick="closeModal('studentModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
       <div>
         <h3 class="text-lg font-extrabold text-white">Ativar Acesso do Aluno</h3>
         <p class="text-xs text-slate-400 mt-1">
-          Informe o e-mail ou CPF usado na compra. Seu acesso e seu painel de desempenho serão vinculados a este dispositivo (<code id="currentDeviceLabel" class="text-emerald-300"></code>).
+          Informe o <strong class="text-slate-200">e-mail e o CPF</strong> cadastrados na compra. Seu acesso permite até <strong class="text-emerald-300">3 dispositivos</strong> (ID atual: <code id="currentDeviceLabel" class="text-emerald-300"></code>).
         </p>
       </div>
 
       <form onsubmit="handleStudentLogin(event)" class="space-y-3">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">E-mail da compra</label>
-          <input id="stuEmail" type="email" placeholder="seuemail@exemplo.com"
+          <label class="block text-xs text-slate-400 mb-1">E-mail da compra *</label>
+          <input id="stuEmail" type="email" required placeholder="seuemail@exemplo.com"
             class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white" />
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">CPF (opcional se informou e-mail)</label>
-          <input id="stuCpf" type="text" placeholder="000.000.000-00"
+          <label class="block text-xs text-slate-400 mb-1">CPF da compra *</label>
+          <input id="stuCpf" type="text" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00"
+            oninput="maskCpfInput(this)"
             class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white" />
         </div>
         <p id="studentAuthMsg" class="text-xs text-rose-400 hidden"></p>
@@ -568,6 +569,7 @@ ERRADO</textarea>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwL9X7sXVL5oDNxxdutQNNDzgBuCsENK_RWc0uAF9D3oe_kCNPtX2qTbAmhsroGAlczRA/exec';
     const ADMIN_SECRET = 'CBMSD=@2025';
     const FREE_QUESTION_LIMIT = 5;
+    const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000; // 2 minutos
 
     const DOMINANT_TOPICS_BY_DISCIPLINE = {
       'DIREITO CONSTITUCIONAL': [
@@ -879,7 +881,8 @@ ERRADO</textarea>
       crmActivities: [],
       timerSeconds: 0,
       timerRunning: false,
-      timerInterval: null
+      timerInterval: null,
+      heartbeatTimer: null
     };
 
     function getOrCreateDeviceId() {
@@ -889,6 +892,23 @@ ERRADO</textarea>
         localStorage.setItem('ps_device_id', id);
       }
       return id;
+    }
+
+    function normalizeCpfDigits(val) {
+      return String(val || '').replace(/\D+/g, '');
+    }
+
+    function maskCpfInput(input) {
+      let d = normalizeCpfDigits(input.value).slice(0, 11);
+      if (d.length > 9) {
+        input.value = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+      } else if (d.length > 6) {
+        input.value = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+      } else if (d.length > 3) {
+        input.value = `${d.slice(0, 3)}.${d.slice(3)}`;
+      } else {
+        input.value = d;
+      }
     }
 
     function getStudentKey() {
@@ -911,6 +931,39 @@ ERRADO</textarea>
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+    // ==================== HEARTBEAT / PRESENÇA DE DISPOSITIVO ====================
+    async function sendDeviceHeartbeat() {
+      const s = state.studentSession;
+      if (!s || !s.allowed) return;
+      if (document.visibilityState === 'hidden') return;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'heartbeat',
+            email: (s.email || '').trim().toLowerCase(),
+            cpf: normalizeCpfDigits(s.cpf),
+            studentKey: getStudentKey(),
+            deviceId: state.deviceId
+          })
+        });
+      } catch (_) {}
+    }
+
+    function startHeartbeatLoop() {
+      if (state.heartbeatTimer) clearInterval(state.heartbeatTimer);
+      sendDeviceHeartbeat();
+      state.heartbeatTimer = setInterval(sendDeviceHeartbeat, HEARTBEAT_INTERVAL_MS);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.studentSession && state.studentSession.allowed) {
+        sendDeviceHeartbeat();
+      }
+    });
+
     // ==================== INICIALIZAÇÃO ====================
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('currentDeviceLabel').textContent = state.deviceId;
@@ -929,6 +982,9 @@ ERRADO</textarea>
         try {
           state.studentSession = JSON.parse(savedSession);
           updateStudentUI();
+          if (state.studentSession && state.studentSession.allowed) {
+            startHeartbeatLoop();
+          }
         } catch (_) {}
       }
 
@@ -1280,7 +1336,6 @@ ERRADO</textarea>
         ? list
         : list.filter(q => normalizeDisciplineKey(q.discipline) === normalizeDisciplineKey(selectedDiscipline));
 
-      // Inclui apenas assuntos que possuem pelo menos 1 questão anexada/correspondente neste escopo
       scopeList.forEach(q => {
         if (q && q.topic && String(q.topic).trim()) {
           availableTopics.add(String(q.topic).trim());
@@ -1567,6 +1622,7 @@ ERRADO</textarea>
             body: JSON.stringify({
               action: 'student_activity',
               studentKey: key,
+              deviceId: state.deviceId,
               item: activity
             })
           });
@@ -1748,21 +1804,35 @@ ERRADO</textarea>
       }
     }
 
-    // ==================== ATIVAÇÃO DE ALUNO + ANTI-RATEIO ====================
+    // ==================== ATIVAÇÃO DE ALUNO (E-MAIL + CPF OBRIGATÓRIOS) ====================
     function openStudentModal() {
       document.getElementById('studentAuthMsg').classList.add('hidden');
+      if (state.studentSession) {
+        if (state.studentSession.email) document.getElementById('stuEmail').value = state.studentSession.email;
+        if (state.studentSession.cpf) {
+          const cpfInput = document.getElementById('stuCpf');
+          cpfInput.value = state.studentSession.cpf;
+          maskCpfInput(cpfInput);
+        }
+      }
       openModal('studentModal');
     }
 
     async function handleStudentLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('stuEmail').value.trim();
-      const cpf = document.getElementById('stuCpf').value.trim();
+      const email = document.getElementById('stuEmail').value.trim().toLowerCase();
+      const cpf = normalizeCpfDigits(document.getElementById('stuCpf').value);
       const msgEl = document.getElementById('studentAuthMsg');
       const btn = document.getElementById('btnActivateStudent');
 
-      if (!email && !cpf) {
-        msgEl.textContent = 'Preencha seu e-mail ou CPF.';
+      if (!email || !email.includes('@')) {
+        msgEl.textContent = 'Informe um e-mail válido.';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+
+      if (cpf.length !== 11) {
+        msgEl.textContent = 'Informe um CPF válido com 11 dígitos.';
         msgEl.classList.remove('hidden');
         return;
       }
@@ -1786,10 +1856,16 @@ ERRADO</textarea>
           };
           localStorage.setItem('ps_student_session', JSON.stringify(state.studentSession));
           updateStudentUI();
+          startHeartbeatLoop();
           loadLocalCrmActivities();
           await syncStudentCrmFromCloud();
           closeModal('studentModal');
-          showToast(`Acesso liberado (${state.studentSession.track})!`);
+
+          const devInfo = data.devicesCount && data.maxDevices
+            ? ` • Aparelho ${data.devicesCount}/${data.maxDevices}`
+            : '';
+          showToast(`Acesso liberado (${state.studentSession.track}${devInfo})!`);
+
           if (!document.getElementById('quizView').classList.contains('hidden')) {
             renderQuestions();
           }
@@ -2022,8 +2098,8 @@ ERRADO</textarea>
     }
 
     async function handleResetDevice() {
-      const email = document.getElementById('resetEmail').value.trim();
-      const cpf = document.getElementById('resetCpf').value.trim();
+      const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+      const cpf = normalizeCpfDigits(document.getElementById('resetCpf').value);
       if (!email && !cpf) {
         showToast('Informe o e-mail ou CPF do aluno.', true);
         return;
@@ -2035,7 +2111,7 @@ ERRADO</textarea>
           body: JSON.stringify({ action: 'reset_device', email, cpf })
         });
         const data = await res.json();
-        showToast(data && data.success ? 'Dispositivo resetado com sucesso!' : 'Aluno não encontrado na aba ALUNOS_LIBERADOS.', !(data && data.success));
+        showToast(data && data.success ? 'Dispositivos resetados com sucesso!' : 'Aluno não encontrado na aba ALUNOS_LIBERADOS.', !(data && data.success));
       } catch (_) {
         showToast('Erro de rede ao resetar dispositivo.', true);
       }
